@@ -29,7 +29,6 @@ suite('Functional Tests', function() {
           .send({ text: 'test #1', delete_password: deletePassword })
           .end( function(err, res){
             assert.equal(res.status, 200);
-            console.log(res);
             done();
           });
       });
@@ -55,18 +54,6 @@ suite('Functional Tests', function() {
     });
     
     suite('DELETE', function() {
-      test('DELETE /api/threads/:board => delete the thread => "success" ', function(done){
-        chai.request(server)
-          .delete('/api/threads/testBoard')
-          .send({
-            thread_id: threadId,
-            delete_password: deletePassword
-        }).end(function(err, res){
-            assert.equal(res.status, 200);
-            assert.equal(res.text, 'success');
-          done();
-        });
-      });
       
       test('DELETE /api/threads/testBoard => delete thread => "Incorrect Password"', function(done){
         chai.request(server)
@@ -75,11 +62,28 @@ suite('Functional Tests', function() {
             thread_id: threadId,
             delete_password: 'test'
         }).end(function(err, res){
+          console.log(res.text);
             assert.equal(res.status, 200);
             assert.equal(res.text, 'incorrect password');
             done();
         });
       });
+      
+      test('DELETE /api/threads/:board => delete the thread => "success" ', function(done){
+        chai.request(server)
+          .delete('/api/threads/testBoard')
+          .send({
+            thread_id: threadId,
+            delete_password: deletePassword
+        }).end(function(err, res){
+          console.log(res.text);
+            assert.equal(res.status, 200);
+            assert.equal(res.text, 'success');
+          
+          done();
+        });
+      });
+      
     });
     
     suite('PUT', function() {
@@ -89,7 +93,6 @@ suite('Functional Tests', function() {
           .send({ text: 'test #4', delete_password: deletePassword })
           .end( function(err, res){
             assert.equal(res.status, 200);
-            console.log(res);
             done();
           });
       });
@@ -130,7 +133,6 @@ suite('Functional Tests', function() {
             delete_password: deletePassword
         }).end(function(err, res){
             assert.equal(res.status, 200);
-            console.log(res);
             done();
         })
       });
@@ -145,17 +147,19 @@ suite('Functional Tests', function() {
             assert.equal(res.status, 200);
             assert.isObject(res.body, 'thread should be an Object');
             assert.equal(res.body['_id'], threadId, 'threadId should be same');
+
             assert.property(res.body, 'replies', 'Thread should have replies property.');
             assert.isArray(res.body['replies'], 'replies property on thread should be an Array.');
+          
             res.body['replies'].forEach(reply => {
               assert.isObject(reply, 'Each reply should be an object.');
               assert.property(reply, '_id', 'reply should have an unique _id property');
               assert.property(reply, 'text', 'reply should have text property');
               assert.property(reply, 'created_on', 'reply should have created_on property.');
             });
-            assert.equal(res.body['replies'][0], 'Some Rondom Reply');
-          
+            assert.equal(res.body['replies'][0]['text'], 'Some Rondom Reply');
             replyId = res.body['replies'][0]['_id'];
+            
             done();
         })
       });
